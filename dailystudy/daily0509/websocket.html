@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<script>
+			window.onload = () => {
+				let console = document.getElementById("console");
+				if (!window.WebSocket){
+					console.innerHTML = "지원하지 않는 브라우저입니다<br>";
+				}
+				console.innerHTML = "지원하는 브라우저입니다<br>";
+				
+				let ws = new WebSocket("ws://localhost:8080/FrontEx/websocket/chat");
+				ws.onopen = (event) => { // 접속이되면
+					console.innerHTML = "서버 접속 성공<br>";
+				}
+				ws.onmessage = (event) => {//메세지가 왔을때
+					let result = document.getElementById("result");
+					result.innerHTML += event.data + "<br>";
+					console.innerHTML = "메세지 수신<br>";
+				}
+				ws.onclose = (event) => {
+					console.innerHTML = "서버 접속 종료<br>";
+				}
+				
+				let btn = document.querySelector("input[value='전송']");
+				btn.addEventListener(
+					"click",
+					(event) => {
+						let send = document.querySelector("input[name='send']");
+						ws.send(send.value);
+						console.innerHTML = "메시지 송신";
+					}
+				);
+			};
+		</script>
+	</head>
+	<body>
+		<h2>Web Socket</h2>
+		<br><br>
+		보낼 메세지 : <input type="text" name="send">
+					<input type="button" value="전송">
+		<br><br>
+		<div id="console"></div>
+		<br><br>
+		받은 메세지 : <br>
+		<div id="result"></div>
+	</body>
+</html>
