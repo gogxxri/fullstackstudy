@@ -106,7 +106,5 @@ public class ChatServer {
 				broadcast(msg);
 			}
 		}
-	}
-	
-	
+	}	
 }

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<script>
+			window.onload = () => {
+				let db;
+				let console=document.getElementById("console");
+				if(! window.indexedDB){
+					console.innerHTML = "지원하지 않는 브라우저입니다."
+					return;
+				} console.innerHTML = "지원하는 브라우저입니다.<br><br>"
+				
+				//db생성
+				const request = window.indexedDB.open("simpleDB", 2); //simpleDB 2버전
+				request.onerror = ( event ) => { // 실패
+					console.innerHTML = event.target.error + "<br><br>";
+				};
+				request.onupgradeneeded = (event) => {  
+					db = event.target.result;
+					if (! db.objectStoreNames.contains( "person" ) ) { // 테이블(objectStoreNames)이 없으면 
+						let objectStore = 					//id기준으로 검색
+							 db.createObjectStore( "person", { keyPath: 'id', autoIncrement: true }); // 테이블생성
+							 objectStore.createIndex( "name", "name", { unique: false }); // 이름으로 검색, 같은 값이 들어가도됨
+					}
+				};
+				request.onsuccess = ( event ) => { // 성공
+					db = event.target.result; // result라는 변수가 만들어지고 결과가 담김
+					console.innerHTML = "DB 생성<br><br>";
+				};
+				
+				//저장
+				document.querySelector("input[value='저장']").addEventListener(
+					"click",
+					(event) => {
+						let id = document.querySelector("input[name='id']");
+						let name = document.querySelector("input[name='name']");
+						let tel = document.querySelector("input[name='tel']");
+						
+						if(id.value && name.value && tel.value) {
+							const person = {
+								id : id.value,
+								name : name.value,
+								tel : tel.value,
+							};
+							let personObjectStore = db.transaction("person", "readwrite").objectStore("person");
+							let input = personObjectStore.add(person);
+							input.addEventListener(
+								"success",
+								(event) => {
+									console.innerHTML = "저장성공<br><br>"
+								}
+							);
+							input.addEventListener( // 중복아이디일때
+								"error",
+								(event) => {
+									console.innerHTML = event.target.error;
+								}
+							);
+						} else{
+							console.innerHTML = "저장할 정보를 입력하세요 <br><br>"
+						}
+					}
+				);
+				
+				//확인
+				document.querySelector("input[value='확인']").addEventListener(
+					"click",
+					(event) => {
+						// 아이디로 검색
+						let id = document.querySelector("input[name='id']");
+						if(id.value){
+							let personObjectStore = db.transaction("person", "readwrite").objectStore("person");
+							let data = personObjectStore.get(id.value);
+							
+							data.addEventListener(
+								"success",
+								(event) => {
+									if (!data.result){	
+										console.innerHTML = "검색한 아이디가 없습니다<br><br>"
+									} else {
+										console.innerHTML = "아이디 : " + data.result.id +"<br>"
+														+ "이름 : " + data.result.name + "<br>"
+														+ "전화번호 : " + data.result.tel +"<br>"
+									}
+								}
+							);
+							data.addEventListener(
+								"error",
+								(event) => {
+									console.innerHTML = event.target.error;
+								}
+							);
+						}
+						
+						// 이름이 여러명 있을 때
+						let name = document.querySelector("input[name='name']");
+						if(name.value){
+							let personObjectStore = db.transaction("person", "readwrite").objectStore("person"); // db연결
+							let index = personObjectStore.index("name");
+							let datas = index.getAll(name.value); // 이름이 여러명이면 다 가져옴
+							
+							datas.addEventListener(
+								"success",
+								(event) => {
+									if (datas.result != ""){	
+										console.innerHTML = "";
+										for(let i=0; i<datas.result.length; i++) {
+											console.innerHTML += "아이디 : " + datas.result[i].id +"<br>"
+																+ "이름 : " + datas.result[i].name + "<br>"
+																+ "전화번호 : " + datas.result[i].tel +"<br><br>";
+										}
+									} else {
+										console.innerHTML = "검색한 이름이 없습니다<br><br>"
+									}
+								}
+							);
+							
+							datas.addEventListener(
+								"error",
+								(event) => {
+									console.innerHTML = event.target.error;
+								}
+							);
+						}
+						
+						
+						// 전체데이터 출력
+						if(!id.value && !name.value){
+							let personObjectStore = db.transaction("person", "readwrite").objectStore("person");
+							let  cursor = personObjectStore.openCursor(); // openCursor() 메서드를 호출하여 personObjectStore에서 커서를 엶
+							console.innerHTML="";
+							cursor.addEventListener(
+								"success",
+								(event) => {
+									let data = cursor.result; // 다음데이터 꺼내옴
+									if(data){
+										console.innerHTML += "아이디 : " + data.value.id +"<br>"
+															+ "이름 : " + data.value.name + "<br>"
+															+ "전화번호 : " + data.value.tel +"<br><br>";
+										data.continue();//커서 이동 
+									}
+								}
+							);
+							cursor.addEventListener(
+								"error",
+								(event) => {
+									console.innerHTML = event.target.error;
+								}
+							);
+						}
+					}
+				);
+				//수정
+				document.querySelector("input[value='수정']").addEventListener(
+					"click",
+					(event) => {
+						let id = document.querySelector( "input[name='id']" );
+						let name = document.querySelector( "input[name='name']" );
+						let tel = document.querySelector( "input[name='tel']" )
+						
+						if(!(id.value && name.value && tel.value)){
+							console.innerHTML = "수정할 데이터를 입력하세요."
+						} else {
+							let personObjectStore = db.transaction("person", "readwrite").objectStore("person"); //db연결
+							let update = personObjectStore.get( id.value ); // 테이블에서 id 가져오기
+							update.addEventListener(
+								"success",
+								(event) => {
+									if(update.result){ //update의 결과가 있을때
+										update.result.name = name.value; //바뀐 데이터를 update.result에 저장
+										update.result.tel = tel.value;
+										personObjectStore.put( update.result );
+										console.innerHTML ="수정 성공<br><br>";
+									} else {
+										console.innerHTML ="수정할 아이디가 없습니다.<br><br>";
+									}
+								}
+							
+							);
+							update.addEventListener(
+								"error",
+								(event) => {
+									console.innerHTML = event.target.error;
+								}
+							);
+						} 
+					}
+				);
+				//삭제
+				document.querySelector("input[value='삭제']").addEventListener(
+					"click",
+					(event) => {
+						let id = document.querySelector("input[name='id']");
+						if(id.value){
+							let personObjectStore = db.transaction("person", "readwrite").objectStore("person");
+							let del = personObjectStore.get(id.value);
+							del.addEventListener(
+								"success",
+								(event) => {
+									if(del.result){
+										personObjectStore.delete(id.value);
+										console.innerHTML = "삭제성공";
+									} else {
+										console.innerHTML = "삭제할 아이디가 없습니다.";
+									}
+									
+								}
+							);
+							del.addEventListener (
+								"error",
+								(event) => {
+									console.innerHTML = event.target.error;
+								}
+							);
+							
+						} else {
+							console.innerHTML = "삭제할 아이디를 입력하세요<br><br>"
+						}
+						
+					}
+				);
+				
+			}; // window.onload
+		</script>
+	</head>
+	<body>
+		<h2> IndexDB </h2>
+		<br><br>
+		<form>
+			<table border="1">
+				<tr>
+					<th>아이디</th>
+					<td>
+						<input type="text" name="id">
+					</td>
+				</tr>
+				<tr>
+					<th>이름</th>
+					<td>
+						<input type="text" name="name">
+					</td>
+				</tr>
+				<tr>
+					<th>전화번호</th>
+					<td>
+						<input type="tel" name="tel">
+					</td>
+				</tr>
+				<tr>
+					<th colspan="2">
+						<input type="button" value="저장">
+						<input type="button" value="확인">
+						<input type="button" value="수정">
+						<input type="button" value="삭제">
+					</th>
+				</tr>
+			</table>
+		</form>
+		<div id="console"></div>
+	</body>
+</html>
