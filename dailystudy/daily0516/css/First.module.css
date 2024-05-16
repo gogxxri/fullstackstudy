@@ -1,0 +1,13 @@
+/*First.modeul.css*/
+.big{
+	width : 200px;
+	color : red;
+}
+.small{
+	width : 100px;
+	color : blue;
+}
+.box{
+	height: 100px;
+	background-color:#aaaaaa;
+}

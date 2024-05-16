@@ -1,0 +1,13 @@
+/*Second.css*/
+.big{
+	width : 200px;
+	color : green;
+}
+.small{
+	width : 50px;
+	color : yellow;
+}
+.button{
+	height : 40px;
+	background-color : gray;
+}
