@@ -1,0 +1,29 @@
+.formbox {
+    width: 80%;
+    height : 50px;
+    margin: 0 auto;
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    font-family : Times New Roman;
+}
+
+.formbox input {
+    flex: 1; 
+    margin-right: 10px; 
+    height:100%; /*.formbox 높이의 100%*/
+}
+
+.formbox button {
+    flex-shrink: 0; 
+    height:100%;
+    width:70px;
+	background-color:#FFAAAA;
+	border: 2px solid;
+	border-color:white;
+}
+.formbox button:hover {
+    background-color: #F08080;
+    border-color:white;
+}
+
