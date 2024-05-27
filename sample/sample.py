@@ -1,5 +1,5 @@
-a = 10
-b = 20
+import random
 
-print(a+b)
-print(a-b)
+a = random.radint(0, 10)
+
+print(a)
