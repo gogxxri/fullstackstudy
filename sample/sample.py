@@ -1,5 +1,16 @@
-import random
+def add(a, b):
+    return a + b
 
-a = random.radint(0, 10)
+def sub(a, b):
+    return a - b
 
-print(a)
+def mul(a, b):
+    return a * b
+
+def div(a, b):
+    return a // b
+
+add(1, 2)
+sub(2, 3)
+mul(4, 7)
+div(6, 2)
